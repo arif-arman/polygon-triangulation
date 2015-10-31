@@ -4,11 +4,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Scanner;
+import java.util.TreeSet;
 
 public class Monotone {
 	int V;
 	ArrayList<Event> events = new ArrayList<>();
 	ArrayList<Edge> edges = new ArrayList<>();
+	TreeSet<Edge> T = new TreeSet<>();
 	
 	public Monotone() throws FileNotFoundException {
 		// TODO Auto-generated constructor stub
@@ -18,19 +20,86 @@ public class Monotone {
 		for (int i=0;i<V;i++) {
 			events.add(new Event(input.nextDouble(), input.nextDouble()));
 		}
-		for (int i=V-1;i>=0;i--) {
-			if (i==0) edges.add(new Edge(events.get(i),events.get(V-1)));
-			else edges.add(new Edge(events.get(i),events.get(i-1)));
+		for (int i=0;i<V;i++) {
+			edges.add(new Edge(events.get(i),events.get((i+1)%V)));
 		}
 		Collections.sort(events, new CustomComparator());
 		input.close();
 		testPrint();
+		System.out.println("Monotone");
+		makeMonotone();
+	}
+	
+	boolean eventCompare(Event e1, Event e2) {
+		return ((e1.getX() == e2.getX()) && (e1.getY() == e2.getY()));
+	}
+	
+	double getAngle(Edge first, Edge second) {
+		double angle = 0;
+		double a1 = first.end.getX() - first.start.getX();
+		double b1 = first.end.getY() - first.start.getY();
+		double a2 = second.end.getX() - second.start.getX();
+		double b2 = second.end.getY() - second.start.getY();
+		double f = Math.sqrt(a1*a1+b1*b1);
+		double s = Math.sqrt(a2*a2+b2*b2);
+		angle = Math.acos((a1*a2+b1*b2)/(f*s));
+		return angle;
+	}
+	
+	int getVertexType(Event e) {
+		Edge first = null;
+		Edge second = null;
+		for (int i=0;i<V;i++) {
+			Edge temp = edges.get(i);
+			if (eventCompare(temp.end,e)) first = temp;
+			else if (eventCompare(temp.start,e)) second = temp;
+		}
+		double angle = Math.toDegrees(getAngle(first, second));
+		System.out.println(angle);
+		return 1;
+	}
+	
+	void handleStartVertex(Event e) {
+		
+	}
+	
+	void handleEndVertex(Event e) {
+		
+	}
+	
+	void handleSplitVertex(Event e) {
+		
+	}
+	
+	void handleMergeVertex(Event e) {
+		
+	}
+	
+	void handleRegularVertex(Event e) {
+		
 	}
 	
 	public void makeMonotone() {
 		for (int i=0;i<V;i++) {
-			Event v = events.get(i);
-			
+			Event e = events.get(i);
+			int s = getVertexType(e);
+			switch (s) {
+			case 1:
+				handleStartVertex(e);
+				break;
+			case 2:
+				handleEndVertex(e);
+				break;
+			case 3:
+				handleSplitVertex(e);
+				break;
+			case 4:
+				handleMergeVertex(e);
+				break;
+			case 5:
+				handleRegularVertex(e);
+				break;
+			}
 		}
 	}
 	
