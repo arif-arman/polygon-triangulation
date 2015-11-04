@@ -1,5 +1,6 @@
 
 public class Event {
+	int id;
 	double x;
 	double y;
 		
@@ -11,8 +12,9 @@ public class Event {
 		return y;
 	}
 
-	public Event(double x, double y) {
+	public Event(double x, double y, int id) {
 		// TODO Auto-generated constructor stub
+		this.id = id;
 		this.x = x;
 		this.y = y;
 	}
@@ -20,7 +22,7 @@ public class Event {
 	@Override
 	public String toString() {
 		// TODO Auto-generated method stub
-		String s = x + " " + y;
+		String s = "v" + id + " " + x + " " + y;
 		return s;
 	}
 

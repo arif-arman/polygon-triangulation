@@ -18,14 +18,14 @@ public class Monotone {
 		Scanner input = new Scanner(file);
 		V = input.nextInt();
 		for (int i=0;i<V;i++) {
-			events.add(new Event(input.nextDouble(), input.nextDouble()));
+			events.add(new Event(input.nextDouble(), input.nextDouble(),i+1));
 		}
 		for (int i=0;i<V;i++) {
 			edges.add(new Edge(events.get(i),events.get((i+1)%V)));
 		}
 		Collections.sort(events, new CustomComparator());
 		input.close();
-		testPrint();
+		//testPrint();
 		System.out.println("Monotone");
 		makeMonotone();
 	}
@@ -34,16 +34,8 @@ public class Monotone {
 		return ((e1.getX() == e2.getX()) && (e1.getY() == e2.getY()));
 	}
 	
-	double getAngle(Edge first, Edge second) {
-		double angle = 0;
-		double a1 = first.end.getX() - first.start.getX();
-		double b1 = first.end.getY() - first.start.getY();
-		double a2 = second.end.getX() - second.start.getX();
-		double b2 = second.end.getY() - second.start.getY();
-		double f = Math.sqrt(a1*a1+b1*b1);
-		double s = Math.sqrt(a2*a2+b2*b2);
-		angle = Math.acos((a1*a2+b1*b2)/(f*s));
-		return angle;
+	double ccw(Event e1, Event e2, Event e3) {
+		return ((e2.getX() - e1.getX()) * (e3.getY() - e2.getY()) - (e2.getY() - e1.getY()) * (e3.getX() - e2.getX()));
 	}
 	
 	int getVertexType(Event e) {
@@ -54,28 +46,43 @@ public class Monotone {
 			if (eventCompare(temp.end,e)) first = temp;
 			else if (eventCompare(temp.start,e)) second = temp;
 		}
-		double angle = Math.toDegrees(getAngle(first, second));
-		System.out.println(angle);
-		return 1;
+		
+		// conditions for start and split vertex
+		if (e.getY() > first.start.getY() && e.getY() > second.end.getY()) {
+			if (ccw(first.start, first.end, second.end) > 0) return 1;
+			else return 3;				
+		}
+		// conditions for end and merge vertex
+		else if (e.getY() < first.start.getY() && e.getY() < second.end.getY()) {
+			if (ccw(first.start, first.end, second.end) > 0) return 2;
+			else return 4;
+		}
+		// regular otherwise
+		else return 5;
+		
 	}
 	
 	void handleStartVertex(Event e) {
+		System.out.println(e + " -- start" );
 		
 	}
 	
 	void handleEndVertex(Event e) {
-		
+		System.out.println(e + " -- end" );
 	}
 	
 	void handleSplitVertex(Event e) {
+		System.out.println(e + " -- split" );
 		
 	}
 	
 	void handleMergeVertex(Event e) {
+		System.out.println(e + " -- merge" );
 		
 	}
 	
 	void handleRegularVertex(Event e) {
+		System.out.println(e + " -- regular" );
 		
 	}
 	
