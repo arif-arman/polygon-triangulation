@@ -11,6 +11,10 @@ public class Event {
 	public double getY() {
 		return y;
 	}
+	
+	public int getId() {
+		return id;
+	}
 
 	public Event(double x, double y, int id) {
 		// TODO Auto-generated constructor stub

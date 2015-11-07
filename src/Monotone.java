@@ -10,7 +10,8 @@ public class Monotone {
 	int V;
 	ArrayList<Event> events = new ArrayList<>();
 	ArrayList<Edge> edges = new ArrayList<>();
-	TreeSet<Edge> T = new TreeSet<>();
+	ArrayList<Edge> T = new ArrayList<>();
+	ArrayList<Edge> D = new ArrayList<>();
 	
 	public Monotone() throws FileNotFoundException {
 		// TODO Auto-generated constructor stub
@@ -21,7 +22,7 @@ public class Monotone {
 			events.add(new Event(input.nextDouble(), input.nextDouble(),i+1));
 		}
 		for (int i=0;i<V;i++) {
-			edges.add(new Edge(events.get(i),events.get((i+1)%V)));
+			edges.add(new Edge(events.get(i),events.get((i+1)%V),(i+1)%V));
 		}
 		Collections.sort(events, new CustomComparator());
 		input.close();
@@ -59,30 +60,137 @@ public class Monotone {
 		}
 		// regular otherwise
 		else return 5;
-		
+	}
+	
+	// unfinished
+	int getLeftEdge(Event e) {
+		Collections.sort(T, new CustomComparator1());
+		int size = T.size();
+		Edge left = null;
+		for (int i=0;i<size;i++) {
+			Edge temp = T.get(i);
+			//System.out.println(temp + " " + temp.getLeft());
+			if (left == null) left = temp;
+			else if ((temp.getLeft() < e.getX()) && (temp.getLeft() > left.getLeft()) 
+					&& (temp.start.getY() >= e.getY()) && (temp.end.getY() <= e.getY()))
+				left = temp;
+		}
+		return left.getId();
 	}
 	
 	void handleStartVertex(Event e) {
 		System.out.println(e + " -- start" );
+		edges.get(e.getId()-1).setHelper(e);
+		T.add(edges.get(e.getId()-1));
 		
+		//System.out.println(edges.get(e.getId()-1));
 	}
 	
 	void handleEndVertex(Event e) {
 		System.out.println(e + " -- end" );
+		// get previous edge
+		Edge temp;
+		if (e.getId() == 1) temp = edges.get(V-1); 
+		else temp = edges.get(e.getId()-2);
+		//System.out.println("Prev edge : " + temp);
+		// check if helper of prev edge is merge vertex
+		if (temp.getHelper() != null && getVertexType(temp.getHelper()) == 4) {
+			D.add(new Edge(e, temp.getHelper()));
+		}
+		// remove previous edge from T
+		for (int i=0;i<T.size();i++) {
+			if (T.get(i).getId() == e.getId()-1) {
+				T.remove(i);
+				break;
+			}
+		}
+		
 	}
 	
 	void handleSplitVertex(Event e) {
 		System.out.println(e + " -- split" );
+		// get left edge	
+		int leftID = getLeftEdge(e);
+		//System.out.println("Left edge: e"+leftID);
+		D.add(new Edge(e, edges.get(leftID-1).getHelper()));
+		edges.get(leftID-1).setHelper(e);
+		// helper of ei is vi
+		edges.get(e.getId()-1).setHelper(e);
+		T.add(edges.get(e.getId()-1));
+		
 		
 	}
 	
 	void handleMergeVertex(Event e) {
 		System.out.println(e + " -- merge" );
+		// get previous edge
+		Edge temp;
+		if (e.getId() == 1) temp = edges.get(V-1); 
+		else temp = edges.get(e.getId()-2);
+		//System.out.println("Prev edge : " + temp);
+		// check if helper of prev edge is merge vertex
+		if (temp.getHelper() != null && getVertexType(temp.getHelper()) == 4) {
+			D.add(new Edge(e, temp.getHelper()));
+		}
+		// remove previous edge from T
+		for (int i=0;i<T.size();i++) {
+			if (T.get(i).getId() == e.getId()-1) {
+				T.remove(i);
+				break;
+			}
+		}
+		// get left edge
+		int leftID = getLeftEdge(e);
+		//System.out.println("e"+leftID);
+		// if helper of left edge is a merge vertex
+		if (getVertexType(edges.get(leftID-1).getHelper()) == 4) 
+			D.add(new Edge(e, edges.get(leftID-1).getHelper()));
+		edges.get(leftID-1).setHelper(e);
 		
 	}
 	
 	void handleRegularVertex(Event e) {
 		System.out.println(e + " -- regular" );
+		// check if left regular
+		int nextID = e.getId() + 1, prevID = e.getId() - 1;
+		if (prevID == 0) prevID = V;
+		else if (nextID == V+1) nextID = 1;
+		double prevY=0, nextY=0;
+		for (int i=0;i<V;i++) {
+			if (events.get(i).getId() == prevID) prevY = events.get(i).getY();
+			else if (events.get(i).getId() == nextID) nextY = events.get(i).getY();
+		}
+		//System.out.println(prevID + " " + prevY + " " + nextID + " " + nextY);
+		if (prevY >= nextY) {
+			// get previous edge
+			Edge temp;
+			if (e.getId() == 1) temp = edges.get(V-1); 
+			else temp = edges.get(e.getId()-2);
+			//System.out.println("Prev edge : " + temp);
+			// check if helper of prev edge is merge vertex
+			if (temp.getHelper() != null && getVertexType(temp.getHelper()) == 4) {
+				D.add(new Edge(e, temp.getHelper()));
+			}
+			// remove previous edge from T
+			for (int i=0;i<T.size();i++) {
+				if (T.get(i).getId() == e.getId()-1) {
+					T.remove(i);
+					break;
+				}
+			}
+			edges.get(e.getId()-1).setHelper(e);
+			T.add(edges.get(e.getId()-1));
+		}
+		else {
+			// get left edge
+			int leftID = getLeftEdge(e);
+			//System.out.println("e"+leftID);
+			// if helper of left edge is a merge vertex
+			if (getVertexType(edges.get(leftID-1).getHelper()) == 4) 
+				D.add(new Edge(e, edges.get(leftID-1).getHelper()));
+			edges.get(leftID-1).setHelper(e);
+			
+		}
 		
 	}
 	
@@ -107,16 +215,27 @@ public class Monotone {
 				handleRegularVertex(e);
 				break;
 			}
+			testPrint();
 		}
 	}
 	
 	void testPrint() {
+		/*
 		for(int i=0;i<V;i++) {
 			System.out.println(events.get(i));
 		}
 		for(int i=0;i<V;i++) {
 			System.out.println(edges.get(i));
 		}
+		*/
+		// print T
+		System.out.println("--- Tree ---");
+		for (int i=0;i<T.size();i++) System.out.println(T.get(i));
+		System.out.println("--- Tree End ---");
+		// print D
+		System.out.println("--- Diagonals ---");
+		for (int i=0;i<D.size();i++) System.out.println(D.get(i));
+		System.out.println("--- Diagonals End ---");
 	}
 	
 	class CustomComparator implements Comparator<Event> {
@@ -128,6 +247,12 @@ public class Monotone {
 	    		return 0;
 	    	}
 	        return Double.compare(o2.getY(), o1.getY());
+	    }
+	}
+	class CustomComparator1 implements Comparator<Edge> {
+	    @Override
+	    public int compare(Edge o1, Edge o2) {
+	    	return Double.compare(o1.getLeft(), o2.getLeft());
 	    }
 	}
 }
