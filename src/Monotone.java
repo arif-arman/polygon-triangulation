@@ -1,10 +1,13 @@
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Scanner;
-import java.util.TreeSet;
 
 public class Monotone {
 	int V;
@@ -12,8 +15,9 @@ public class Monotone {
 	ArrayList<Edge> edges = new ArrayList<>();
 	ArrayList<Edge> T = new ArrayList<>();
 	ArrayList<Edge> D = new ArrayList<>();
+	PrintWriter out;
 	
-	public Monotone() throws FileNotFoundException {
+	public Monotone() throws IOException {
 		// TODO Auto-generated constructor stub
 		File file = new File("input.txt");
 		Scanner input = new Scanner(file);
@@ -22,13 +26,17 @@ public class Monotone {
 			events.add(new Event(input.nextDouble(), input.nextDouble(),i+1));
 		}
 		for (int i=0;i<V;i++) {
-			edges.add(new Edge(events.get(i),events.get((i+1)%V),(i+1)%V));
+			edges.add(new Edge(events.get(i),events.get((i+1)%V),(i+1)%(V+1)));
 		}
+		out = new PrintWriter(new BufferedWriter(new FileWriter("output.txt", false)));
 		Collections.sort(events, new CustomComparator());
 		input.close();
 		//testPrint();
 		System.out.println("Monotone");
 		makeMonotone();
+		fileOut();
+		out.close();
+		
 	}
 	
 	boolean eventCompare(Event e1, Event e2) {
@@ -215,8 +223,15 @@ public class Monotone {
 				handleRegularVertex(e);
 				break;
 			}
-			testPrint();
+			//testPrint();
 		}
+		testPrint();
+	}
+	
+	void fileOut() {
+		out.println(D.size());
+		for (int i=0;i<D.size();i++) 
+			out.println(D.get(i).start.getX() + " " + D.get(i).start.getY() + " " + D.get(i).end.getX() + " " + D.get(i).end.getY());
 	}
 	
 	void testPrint() {
@@ -227,11 +242,12 @@ public class Monotone {
 		for(int i=0;i<V;i++) {
 			System.out.println(edges.get(i));
 		}
-		*/
+		
 		// print T
 		System.out.println("--- Tree ---");
 		for (int i=0;i<T.size();i++) System.out.println(T.get(i));
 		System.out.println("--- Tree End ---");
+		*/
 		// print D
 		System.out.println("--- Diagonals ---");
 		for (int i=0;i<D.size();i++) System.out.println(D.get(i));
