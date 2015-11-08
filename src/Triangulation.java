@@ -135,7 +135,7 @@ public class Triangulation {
 	
 	public static void main(String[] args) throws IOException {
 		Monotone m = new Monotone();
-		Triangulation t = new Triangulation();
+		//Triangulation t = new Triangulation();
 	}
 
 }

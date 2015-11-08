@@ -70,8 +70,24 @@ public class Monotone {
 		else return 5;
 	}
 	
+	double getDistance(Edge edge, Event e) {
+		double x = (e.getY()-edge.start.getY())*(edge.start.getX()-edge.end.getX()) / 
+				(edge.start.getY()-edge.end.getY()) + edge.start.getX();
+		return e.getX() - x;
+	}
 	// unfinished
 	int getLeftEdge(Event e) {
+		int size = T.size();
+		Edge left = null;
+		double min = Double.MAX_VALUE;
+		for (int i=0;i<size;i++) {
+			double distance = getDistance(T.get(i),e);
+			if (distance >= 0 && distance < min) {
+				min = distance;
+				left = T.get(i);
+			}
+		}
+		/*
 		Collections.sort(T, new CustomComparator1());
 		int size = T.size();
 		Edge left = null;
@@ -83,6 +99,7 @@ public class Monotone {
 					&& (temp.start.getY() >= e.getY()) && (temp.end.getY() <= e.getY()))
 				left = temp;
 		}
+		*/
 		return left.getId();
 	}
 	
@@ -226,6 +243,11 @@ public class Monotone {
 			//testPrint();
 		}
 		testPrint();
+	}
+	
+	public ArrayList<ArrayList<Event>> getMonotonePieces() {
+		ArrayList<ArrayList<Event>> monotones = new ArrayList<>();
+		return monotones;
 	}
 	
 	void fileOut() {
