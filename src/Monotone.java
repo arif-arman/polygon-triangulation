@@ -11,10 +11,12 @@ import java.util.Scanner;
 
 public class Monotone {
 	int V;
-	ArrayList<Event> events = new ArrayList<>();
+	ArrayList<Event> events = new ArrayList<>();	// sorted
+	ArrayList<Event> ccwevents = new ArrayList<>();
 	ArrayList<Edge> edges = new ArrayList<>();
 	ArrayList<Edge> T = new ArrayList<>();
 	ArrayList<Edge> D = new ArrayList<>();
+	ArrayList<ArrayList<Event>> monotones = new ArrayList<>();
 	PrintWriter out;
 	
 	public Monotone() throws IOException {
@@ -24,6 +26,7 @@ public class Monotone {
 		V = input.nextInt();
 		for (int i=0;i<V;i++) {
 			events.add(new Event(input.nextDouble(), input.nextDouble(),i+1));
+			ccwevents.add(events.get(i));
 		}
 		for (int i=0;i<V;i++) {
 			edges.add(new Edge(events.get(i),events.get((i+1)%V),(i+1)%(V+1)));
@@ -32,10 +35,12 @@ public class Monotone {
 		Collections.sort(events, new CustomComparator());
 		input.close();
 		//testPrint();
-		System.out.println("Monotone");
+		System.out.println("=== Monotone ===");
 		makeMonotone();
 		fileOut();
 		out.close();
+		getMonotonePieces();
+		testPrint();
 		
 	}
 	
@@ -75,7 +80,7 @@ public class Monotone {
 				(edge.start.getY()-edge.end.getY()) + edge.start.getX();
 		return e.getX() - x;
 	}
-	// unfinished
+	
 	int getLeftEdge(Event e) {
 		int size = T.size();
 		Edge left = null;
@@ -242,11 +247,97 @@ public class Monotone {
 			}
 			//testPrint();
 		}
-		testPrint();
+		
 	}
 	
-	public ArrayList<ArrayList<Event>> getMonotonePieces() {
-		ArrayList<ArrayList<Event>> monotones = new ArrayList<>();
+	private void getPiece(ArrayList<Event> P, ArrayList<Edge> Diag) {
+		//System.out.println();
+		//for (int i=0;i<P.size();i++) System.out.println(P.get(i));	
+		//for (int i=0;i<Diag.size();i++) System.out.println(Diag.get(i));	
+		System.out.println();
+		if (Diag.size() > 0) {
+			Edge diag = Diag.get(0);
+			System.out.println(diag.top + " " + diag.bot);
+			// check if diagonal of this polygo
+			ArrayList<Event> P1 = new ArrayList<>();
+			ArrayList<Event> P2 = new ArrayList<>();
+			int topindex = 0;
+			int botindex = 0;
+			
+			for (int k=0;k<P.size();k++) {
+				if (eventCompare(P.get(k), diag.top)) {
+					topindex = k;
+				}
+				if (eventCompare(P.get(k), diag.bot)) {
+					botindex = k;
+				}
+			}
+			System.out.println(topindex + " " + botindex);
+			//P1.add(diag.top);
+			int tempindex = topindex;
+			while (tempindex != botindex) {				
+				P1.add(P.get(tempindex));
+				tempindex = (tempindex+1)%P.size();
+			}
+			P1.add(P.get(tempindex));
+			//P2.add(diag.bot);
+			tempindex = botindex;
+			while (tempindex != topindex) {
+				P2.add(P.get(tempindex));
+				tempindex = (tempindex+1)%P.size();
+			}
+			P2.add(P.get(tempindex));
+			/*
+			System.out.println();
+			for (int i=0;i<P1.size();i++) System.out.println(P1.get(i));
+			System.out.println();
+			for (int i=0;i<P2.size();i++) System.out.println(P2.get(i));
+			System.out.println();
+			*/
+			Diag.remove(0);
+			ArrayList<Edge> Diag1 = new ArrayList<>();
+			ArrayList<Edge> Diag2 = new ArrayList<>();
+			for (int k=0;k<Diag.size();k++) {
+				Edge d = Diag.get(k);
+				int count = 0;
+				for (int j=0;j<P1.size();j++) {
+					if (eventCompare(d.top, P1.get(j))) count ++;
+					else if (eventCompare(d.bot, P1.get(j))) count++;
+					if (count == 2) {
+						Diag1.add(d);
+						break;
+					}
+				}
+				count = 0;
+				for (int j=0;j<P2.size();j++) {
+					if (eventCompare(d.top, P2.get(j))) count ++;
+					else if (eventCompare(d.bot, P2.get(j))) count++;
+					if (count == 2) {
+						Diag2.add(d);
+						break;
+					}
+				}
+			}
+			getPiece(P1,Diag1);
+			getPiece(P2,Diag2);
+			return;
+		}
+		if (Diag.size() == 0){
+			monotones.add(P);
+			System.out.println(monotones.size());
+		}
+		
+	}
+	
+	public ArrayList<ArrayList<Event>> getMonotonePieces() {	
+		Collections.sort(D, new CustomComparator1());
+		int size = D.size();
+		ArrayList<Edge> diag = new ArrayList<>();
+		for (int i=0;i<size;i++) {
+			//System.out.println(D.get(i));
+			diag.add(D.get(i));
+		}
+		getPiece(ccwevents, diag);	
 		return monotones;
 	}
 	
@@ -274,6 +365,15 @@ public class Monotone {
 		System.out.println("--- Diagonals ---");
 		for (int i=0;i<D.size();i++) System.out.println(D.get(i));
 		System.out.println("--- Diagonals End ---");
+		// print monotone pieces
+		System.out.println("--- Monotone Pieces ---");
+		for (int i=0;i<monotones.size();i++) {
+			ArrayList<Event> ev = monotones.get(i);
+			System.out.println("--- Monotone " + i +" ---");
+			for (int j=0;j<ev.size();j++) {
+				System.out.println(ev.get(j));
+			}
+		}
 	}
 	
 	class CustomComparator implements Comparator<Event> {
@@ -290,7 +390,7 @@ public class Monotone {
 	class CustomComparator1 implements Comparator<Edge> {
 	    @Override
 	    public int compare(Edge o1, Edge o2) {
-	    	return Double.compare(o1.getLeft(), o2.getLeft());
+	    	return Double.compare(o2.getTop(), o1.getTop());
 	    }
 	}
 }

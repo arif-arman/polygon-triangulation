@@ -4,6 +4,8 @@ public class Edge {
 	Event start;
 	Event end;
 	Event helper;
+	Event top;
+	Event bot;
 	
 	public Event getStart() {
 		return start;
@@ -21,10 +23,20 @@ public class Edge {
 		return id;
 	}
 	
-	// return left most vertex of edge according to X coordinate
-	public double getLeft() {
-		if (start.getX() <= end.getX()) return start.getX();
-		else return end.getX();
+	// return top most vertex of edge according to Y coordinate
+	void setTop() {
+		if (start.getY() >= end.getY()) {
+			top = start;
+			bot = end;
+		}
+		else {
+			top = end;
+			bot = start;
+		}
+			
+	}
+	public double getTop() {
+		return top.getY();
 	}
 	
 	public void setHelper(Event helper) {
@@ -36,12 +48,14 @@ public class Edge {
 		this.id = id;
 		this.start = start;
 		this.end = end;
+		setTop();
 	}
 	
 	public Edge(Event start, Event end) {
 		// TODO Auto-generated constructor stub
 		this.start = start;
 		this.end = end;
+		setTop();
 	}
 	
 	@Override
