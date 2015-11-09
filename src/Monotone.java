@@ -39,7 +39,7 @@ public class Monotone {
 		makeMonotone();
 		fileOut();
 		out.close();
-		getMonotonePieces();
+		computeMonotonePieces();
 		testPrint();
 		
 	}
@@ -250,14 +250,16 @@ public class Monotone {
 		
 	}
 	
+	
+	
 	private void getPiece(ArrayList<Event> P, ArrayList<Edge> Diag) {
 		//System.out.println();
 		//for (int i=0;i<P.size();i++) System.out.println(P.get(i));	
 		//for (int i=0;i<Diag.size();i++) System.out.println(Diag.get(i));	
-		System.out.println();
+		//System.out.println();
 		if (Diag.size() > 0) {
 			Edge diag = Diag.get(0);
-			System.out.println(diag.top + " " + diag.bot);
+			//System.out.println(diag.top + " " + diag.bot);
 			// check if diagonal of this polygo
 			ArrayList<Event> P1 = new ArrayList<>();
 			ArrayList<Event> P2 = new ArrayList<>();
@@ -272,7 +274,7 @@ public class Monotone {
 					botindex = k;
 				}
 			}
-			System.out.println(topindex + " " + botindex);
+			//System.out.println(topindex + " " + botindex);
 			//P1.add(diag.top);
 			int tempindex = topindex;
 			while (tempindex != botindex) {				
@@ -324,12 +326,12 @@ public class Monotone {
 		}
 		if (Diag.size() == 0){
 			monotones.add(P);
-			System.out.println(monotones.size());
+			//System.out.println(monotones.size());
 		}
 		
 	}
 	
-	public ArrayList<ArrayList<Event>> getMonotonePieces() {	
+	public void computeMonotonePieces() {	
 		Collections.sort(D, new CustomComparator1());
 		int size = D.size();
 		ArrayList<Edge> diag = new ArrayList<>();
@@ -338,6 +340,10 @@ public class Monotone {
 			diag.add(D.get(i));
 		}
 		getPiece(ccwevents, diag);	
+		
+	}
+	
+	public ArrayList<ArrayList<Event>> getMonotonePieces() {
 		return monotones;
 	}
 	
@@ -347,7 +353,7 @@ public class Monotone {
 			out.println(D.get(i).start.getX() + " " + D.get(i).start.getY() + " " + D.get(i).end.getX() + " " + D.get(i).end.getY());
 	}
 	
-	void testPrint() {
+	public void testPrint() {
 		/*
 		for(int i=0;i<V;i++) {
 			System.out.println(events.get(i));

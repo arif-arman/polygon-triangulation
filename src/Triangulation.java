@@ -1,6 +1,9 @@
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -11,9 +14,11 @@ public class Triangulation {
 	
 	ArrayList<ArrayList<Event>> monotones = new ArrayList<>();
 	int d;
+	PrintWriter out;
 	
-	public Triangulation() throws FileNotFoundException {
+	public Triangulation(ArrayList<ArrayList<Event>> monotones) throws IOException {
 		// TODO Auto-generated constructor stub
+		/*
 		File file = new File("input1.txt");
 		Scanner input = new Scanner(file);
 		d = input.nextInt();
@@ -26,8 +31,22 @@ public class Triangulation {
 			monotones.add(events);
 		}
 		input.close();
-		System.out.println("Triangulation");
+		*/
+		d = monotones.size();
+		
+		for (int i=0;i<d;i++) {
+			ArrayList<Event> events = monotones.get(i);
+			ArrayList<Event> newEvents = new ArrayList<>();
+			for (int j=0;j<events.size();j++) {
+				newEvents.add(new Event(events.get(j).getX(), events.get(j).getY(), j+1));
+			}
+			this.monotones.add(newEvents);
+		}
+		out = new PrintWriter(new BufferedWriter(new FileWriter("output1.txt", false)));
+		System.out.println("=== Triangulation ===");
 		triangulate();
+		//fileOut();
+		out.close();
 		//testPrint();
 	}
 	
@@ -36,6 +55,7 @@ public class Triangulation {
 	}
 	
 	void triangulate() {
+		ArrayList<ArrayList<Edge>> diagonals = new ArrayList<>();
 		for (int i=0;i<d;i++) {
 			System.out.println("--- Monotone " + i + "---");
 			/*
@@ -45,8 +65,10 @@ public class Triangulation {
 			Collections.sort(events, new CustomComparator());
 			//for (int j=0;j<events.size();j++) System.out.println(events.get(j));
 			int size = events.size();
+			events.get(0).setLeftChain(true);
 			Event top = events.get(0);
 			//System.out.println(top);
+			events.get(size-1).setLeftChain(true);
 			Event bot = events.get(size-1);
 			//System.out.println(bot);
 			int nextID = top.getId()%size + 1;
@@ -84,31 +106,59 @@ public class Triangulation {
 					while(true) {
 						s = stack.peek();
 						System.out.println("top " + s);
-						Event next = null;
-						for (int k=0;k<size;k++) {
-							if (events.get(k).getId() == s.getId()%size + 1) {
-								next = events.get(k);
-								break;
+						if (s.getLeftChain() == e.getLeftChain()) {
+							Event next = null;
+							for (int k=0;k<size;k++) {
+								if (events.get(k).getId() == s.getId()%size + 1) {
+									next = events.get(k);
+									break;
+								}
 							}
+							System.out.println("next " + next + ccw(s,next,e));
+							if (ccw(s,next,e)>0) {
+								D.add(new Edge(s, e));
+								last = s;
+								stack.pop();
+							}
+							else break;
 						}
-						System.out.println("next " + next);
-						if (ccw(s,next,e)>0) {
-							D.add(new Edge(s, e));
-							last = s;
-							stack.pop();
+						else {
+							Event next = null;
+							for (int k=0;k<size;k++) {
+								if (events.get(k).getId() == s.getId()%size - 1) {
+									next = events.get(k);
+									break;
+								}
+							}
+							System.out.println("next " + next + ccw(s,next,e));
+							if (ccw(s,next,e)<0) {
+								D.add(new Edge(s, e));
+								last = s;
+								stack.pop();
+							}
+							else break;
 						}
-						else break;
+						
 						if (stack.isEmpty()) break;
-
 					}
 					stack.push(last);
 					stack.push(e);
 				}
+				
 			}
+			Event e = events.get(events.size()-1);
+			if(!stack.empty()) stack.pop();
+			while(true) {
+				Event s = stack.pop();
+				if (stack.isEmpty()) break;
+				D.add(new Edge(e, s)); 
+			}
+			
 			// print D
 			for (int k=0;k<D.size();k++) System.out.println(D.get(k));
-			
+			diagonals.add(D);
 		}
+		fileOut(diagonals);
 	}
 	
 	void testPrint() {
@@ -118,6 +168,20 @@ public class Triangulation {
 			Collections.sort(events, new CustomComparator());
 			int size = events.size();
 			for (int j=0;j<size;j++) System.out.println(events.get(j));
+		}
+	}
+	
+	void fileOut(ArrayList<ArrayList<Edge>> diagonals) {
+		//out.println(D.size());
+		int count = 0;
+		for (int j=0;j<diagonals.size();j++) {
+			count += diagonals.get(j).size();
+		}
+		out.println(count);
+		for (int j=0;j<diagonals.size();j++) {
+			ArrayList<Edge> D = diagonals.get(j);
+			for (int i=0;i<D.size();i++) 
+				out.println(D.get(i).start.getX() + " " + D.get(i).start.getY() + " " + D.get(i).end.getX() + " " + D.get(i).end.getY());
 		}
 	}
 	
@@ -135,7 +199,8 @@ public class Triangulation {
 	
 	public static void main(String[] args) throws IOException {
 		Monotone m = new Monotone();
-		//Triangulation t = new Triangulation();
+		Triangulation t = new Triangulation(m.getMonotonePieces());
+		//testPrint();
 	}
 
 }
