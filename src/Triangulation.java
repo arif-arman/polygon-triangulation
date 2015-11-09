@@ -89,7 +89,7 @@ public class Triangulation {
 			stack.push(events.get(1));
 			for (int j=2;j<size-1;j++) {
 				Event e = events.get(j);
-				System.out.println("this " + e);
+				//System.out.println("this " + e);
 				if (e.getLeftChain() != stack.peek().getLeftChain()) {
 					Event s;
 					while(true) {
@@ -105,7 +105,7 @@ public class Triangulation {
 					Event s = null;
 					while(true) {
 						s = stack.peek();
-						System.out.println("top " + s);
+						//System.out.println("top " + s);
 						if (s.getLeftChain() == e.getLeftChain()) {
 							Event next = null;
 							for (int k=0;k<size;k++) {
@@ -114,7 +114,7 @@ public class Triangulation {
 									break;
 								}
 							}
-							System.out.println("next " + next + ccw(s,next,e));
+							//System.out.println("next " + next + ccw(s,next,e));
 							if (ccw(s,next,e)>0) {
 								D.add(new Edge(s, e));
 								last = s;
@@ -125,12 +125,14 @@ public class Triangulation {
 						else {
 							Event next = null;
 							for (int k=0;k<size;k++) {
-								if (events.get(k).getId() == s.getId()%size - 1) {
+								int id = s.getId()%size - 1;
+								if (id == 0) id = size;
+								if (events.get(k).getId() == id) {
 									next = events.get(k);
 									break;
 								}
 							}
-							System.out.println("next " + next + ccw(s,next,e));
+							//System.out.println("next " + next + ccw(s,next,e));
 							if (ccw(s,next,e)<0) {
 								D.add(new Edge(s, e));
 								last = s;

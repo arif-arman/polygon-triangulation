@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Scanner;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 public class Monotone {
 	int V;
@@ -18,6 +20,8 @@ public class Monotone {
 	ArrayList<Edge> D = new ArrayList<>();
 	ArrayList<ArrayList<Event>> monotones = new ArrayList<>();
 	PrintWriter out;
+	
+	TreeMap<Double, Edge> bst = new TreeMap<>();
 	
 	public Monotone() throws IOException {
 		// TODO Auto-generated constructor stub
@@ -82,6 +86,8 @@ public class Monotone {
 	}
 	
 	int getLeftEdge(Event e) {
+		// linear
+		/*
 		int size = T.size();
 		Edge left = null;
 		double min = Double.MAX_VALUE;
@@ -92,6 +98,9 @@ public class Monotone {
 				left = T.get(i);
 			}
 		}
+		*/
+		SortedMap<Double, Edge> map = bst.headMap(new Double(e.getX()));
+		Edge left = map.get(map.lastKey());
 		/*
 		Collections.sort(T, new CustomComparator1());
 		int size = T.size();
@@ -108,12 +117,17 @@ public class Monotone {
 		return left.getId();
 	}
 	
+	void bstTest() {
+		System.out.println(bst);
+	}
+	
 	void handleStartVertex(Event e) {
 		System.out.println(e + " -- start" );
 		edges.get(e.getId()-1).setHelper(e);
-		T.add(edges.get(e.getId()-1));
-		
+		//T.add(edges.get(e.getId()-1));
+		bst.put(edges.get(e.getId()-1).getLeft(), edges.get(e.getId()-1));
 		//System.out.println(edges.get(e.getId()-1));
+		//bstTest();
 	}
 	
 	void handleEndVertex(Event e) {
@@ -128,12 +142,16 @@ public class Monotone {
 			D.add(new Edge(e, temp.getHelper()));
 		}
 		// remove previous edge from T
+		/*
 		for (int i=0;i<T.size();i++) {
 			if (T.get(i).getId() == e.getId()-1) {
 				T.remove(i);
 				break;
 			}
 		}
+		*/
+		bst.remove(temp.getLeft());
+		//bstTest();
 		
 	}
 	
@@ -146,8 +164,9 @@ public class Monotone {
 		edges.get(leftID-1).setHelper(e);
 		// helper of ei is vi
 		edges.get(e.getId()-1).setHelper(e);
-		T.add(edges.get(e.getId()-1));
-		
+		//T.add(edges.get(e.getId()-1));
+		bst.put(edges.get(e.getId()-1).getLeft(), edges.get(e.getId()-1));
+		//bstTest();
 		
 	}
 	
@@ -163,12 +182,16 @@ public class Monotone {
 			D.add(new Edge(e, temp.getHelper()));
 		}
 		// remove previous edge from T
+		/*
 		for (int i=0;i<T.size();i++) {
 			if (T.get(i).getId() == e.getId()-1) {
 				T.remove(i);
 				break;
 			}
 		}
+		*/
+		//System.out.println(temp);
+		bst.remove(temp.getLeft());
 		// get left edge
 		int leftID = getLeftEdge(e);
 		//System.out.println("e"+leftID);
@@ -176,6 +199,7 @@ public class Monotone {
 		if (getVertexType(edges.get(leftID-1).getHelper()) == 4) 
 			D.add(new Edge(e, edges.get(leftID-1).getHelper()));
 		edges.get(leftID-1).setHelper(e);
+		//bstTest();
 		
 	}
 	
@@ -202,14 +226,18 @@ public class Monotone {
 				D.add(new Edge(e, temp.getHelper()));
 			}
 			// remove previous edge from T
+			/*
 			for (int i=0;i<T.size();i++) {
 				if (T.get(i).getId() == e.getId()-1) {
 					T.remove(i);
 					break;
 				}
 			}
+			*/
+			bst.remove(temp.getLeft());
 			edges.get(e.getId()-1).setHelper(e);
-			T.add(edges.get(e.getId()-1));
+			//T.add(edges.get(e.getId()-1));
+			bst.put(edges.get(e.getId()-1).getLeft(), edges.get(e.getId()-1));
 		}
 		else {
 			// get left edge
@@ -221,6 +249,7 @@ public class Monotone {
 			edges.get(leftID-1).setHelper(e);
 			
 		}
+		//bstTest();
 		
 	}
 	
@@ -249,8 +278,6 @@ public class Monotone {
 		}
 		
 	}
-	
-	
 	
 	private void getPiece(ArrayList<Event> P, ArrayList<Edge> Diag) {
 		//System.out.println();
@@ -372,7 +399,7 @@ public class Monotone {
 		for (int i=0;i<D.size();i++) System.out.println(D.get(i));
 		System.out.println("--- Diagonals End ---");
 		// print monotone pieces
-		System.out.println("--- Monotone Pieces ---");
+		System.out.println("=== Monotone Pieces ===");
 		for (int i=0;i<monotones.size();i++) {
 			ArrayList<Event> ev = monotones.get(i);
 			System.out.println("--- Monotone " + i +" ---");

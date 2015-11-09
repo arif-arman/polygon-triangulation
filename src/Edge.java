@@ -7,6 +7,8 @@ public class Edge {
 	Event top;
 	Event bot;
 	
+	Event left;
+	
 	public Event getStart() {
 		return start;
 	}
@@ -21,6 +23,15 @@ public class Edge {
 	
 	public int getId() {
 		return id;
+	}
+	
+	public double getLeft() {
+		return left.getX();
+	}
+	
+	public void setLeft() {
+		if (start.getX() <= end.getX()) left = start;
+		else left = end;
 	}
 	
 	// return top most vertex of edge according to Y coordinate
@@ -49,6 +60,7 @@ public class Edge {
 		this.start = start;
 		this.end = end;
 		setTop();
+		setLeft();
 	}
 	
 	public Edge(Event start, Event end) {
@@ -56,6 +68,7 @@ public class Edge {
 		this.start = start;
 		this.end = end;
 		setTop();
+		setLeft();
 	}
 	
 	@Override
